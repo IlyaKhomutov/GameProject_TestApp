@@ -20,7 +20,7 @@ The whole system must be implemented using REST API JSON.
 - Get their token: ("token/")
 
 # Authorized users can:
-(The following methods work only with the "Bearer (your access token)", which must be in the header "Authorization")
+(The following methods work only with the "Bearer &lt;your access token&gt;", which must be in the header "Authorization")
 - Check their profile: ("profile/")
 - Refill the balance: ("deposit/")
 - Check all deposits: ("deposits/")
