@@ -1,3 +1,6 @@
+# Requirements:
+The whole system must be implemented using REST API JSON.
+
 # Functionality:
 1. Registration
 2. Authorization
@@ -8,7 +11,7 @@
 
 # How to run the system:
 1. Clone code
-2. Create venv and .env file with your secret key
+2. Create virtual enviroment and .env file with your secret key
 3. Run "sudo docker-compose up"
 
 # Unauthorized users can:
