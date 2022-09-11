@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  gp_db:
+    image: postgres:11-alpine
+    volumes:
+      - postgres_data:/var/lib/potgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+  gp_web:
+    build: .
+    command: bash -c "python /usr/src/test-app/manage.py makemigrations --noinput &&
+                      python /usr/src/test-app/manage.py migrate --noinput &&
+                      python /usr/src/test-app/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/usr/src/test-app
+    ports:
+      - 8000:8000
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - gp_db
+volumes:
+  postgres_data:
