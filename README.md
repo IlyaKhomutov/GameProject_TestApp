@@ -9,10 +9,11 @@ The whole system must be implemented using REST API JSON.
 5. Create Game
 6. Buy Game
 
-# How to run the system:
-1. Clone code
-2. Create virtual enviroment and .env file with your secret key
-3. Run "sudo docker-compose up"
+# How to run the system(Linux):
+1. Clone code 
+3. Create virtual enviroment and .env file with your Django secret key
+4. Run "cd gameproject"
+5. Run "sudo docker-compose up"
 
 # Unauthorized users can:
 - Register: ("registraion/")
