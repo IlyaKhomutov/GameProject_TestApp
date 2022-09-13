@@ -11,7 +11,7 @@ The whole system must be implemented using REST API JSON.
 
 # How to run the system:
 1. Clone code 
-2. Go to root directory: "cd gameproject"
+2. Go to application root folder: "GameProject_TestApp/gameproject/"
 3. Create .env file with your Django secret key
 4. Run "sudo docker-compose up"
 
