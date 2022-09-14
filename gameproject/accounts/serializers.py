@@ -37,7 +37,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class DepositSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Deposit
         fields = [
@@ -47,19 +46,17 @@ class DepositSerializer(serializers.ModelSerializer):
 
 
 class DepositsListSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Deposit
         fields = ['id',
-                  'amount']
+                  'amount',
+                  'status', ]
 
 
 class RollbackSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Deposit
-        fields = ['id',
-                  'amount']
+        fields = ['id']
 
 
 class ProfileSerializer(serializers.ModelSerializer):

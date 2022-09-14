@@ -2,14 +2,14 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
 from .models import Deposit, CustomUser
-from .serializers import RegistrationSerializer, DepositSerializer, DepositsListSerializer, RollbackSerializer,\
+from .serializers import RegistrationSerializer, DepositSerializer, DepositsListSerializer, RollbackSerializer, \
     ProfileSerializer
 from django.db.models import F
 
 
 class IsNotAuthenticated(BasePermission):
     def has_permission(self, request, view):
-        return bool(not(request.user and request.user.is_authenticated))
+        return bool(not (request.user and request.user.is_authenticated))
 
 
 class RegistrationAPIView(generics.GenericAPIView):
@@ -63,26 +63,48 @@ class DepositsListViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class RollbackView(generics.RetrieveDestroyAPIView):
+class RollbackView(generics.RetrieveUpdateAPIView):
     queryset = Deposit.objects.all()
     serializer_class = RollbackSerializer
     lookup_field = 'id'
     permission_classes = (IsAuthenticated,)
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        amount = instance.amount
+
+        deposit_amount = instance.amount
+        deposit_id = instance.id
+        deposit_status = instance.status
+        deposit = Deposit.objects.filter(id=deposit_id)
 
         username = self.request.user.username
         user = CustomUser.objects.filter(username=username)
 
-        if self.request.user.balance >= amount:
-            self.perform_destroy(instance)
-            user.update(balance=F('balance') - amount)
-            return Response(
-                {"balance": int(self.request.user.balance) - int(amount),
-                 "Message": "success", "Description": "Success"},
-                status=status.HTTP_200_OK)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        if serializer.is_valid(raise_exception=True):
+            if deposit_status == "success":
+                if self.request.user.balance >= deposit_amount:
+                    self.perform_update(serializer)
+                    deposit.update(status='cancelled')
+                    user.update(balance=F('balance') - deposit_amount)
+                    return Response(
+                        {"balance": int(self.request.user.balance) - int(deposit_amount),
+                         "Message": "success", "Description": "Success"},
+                        status=status.HTTP_200_OK)
+                else:
+                    return Response(
+                        {"Message": "error",
+                         "Description": "Not successful, there are not enough money in your account"},
+                        status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response(
+                    {"Message": "error", "Description": "Not successful, deposit is already cancelled"},
+                    status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(
                 {"Message": "error", "Description": "Not successful, unknown error"},

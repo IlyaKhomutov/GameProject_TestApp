@@ -29,7 +29,6 @@ class PurchaseProfileSerializer(serializers.ModelSerializer):
 
 
 class PurchaseSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Purchase
         fields = ["game"

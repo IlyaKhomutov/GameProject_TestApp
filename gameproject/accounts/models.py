@@ -20,6 +20,7 @@ class Deposit(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name='username', related_name='deposits',
                              help_text="Unique username")
     amount = models.IntegerField("Amount", help_text="In cents")
+    status = models.CharField("Status", default="success", max_length=100)
 
     class Meta:
         verbose_name = "Deposit"
