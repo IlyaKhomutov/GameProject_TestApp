@@ -61,7 +61,7 @@ class RollbackSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     games = serializers.SerializerMethodField()
-
+    created_games = serializers.StringRelatedField(many=True)
     def get_games(self, instance):
         purchases = instance.purchases.all()
         return PurchaseProfileSerializer(purchases, many=True).data

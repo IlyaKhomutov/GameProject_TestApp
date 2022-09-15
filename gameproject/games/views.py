@@ -1,10 +1,8 @@
-from django.db.models import F
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Game, Purchase
 from .serializers import GameCreationSerializer, PurchaseSerializer
-from accounts.models import CustomUser
+from .services import *
 
 
 class GameCreationViewSet(viewsets.ModelViewSet):
@@ -37,20 +35,15 @@ class GamePurchaseViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             game_id = request.data['game']
 
-            game_creator = Game.objects.values_list('creator').get(id=game_id)[0]
-            game_creator_user = CustomUser.objects.filter(id=game_creator)
-
-            game_price = Game.objects.values_list('price').get(id=game_id)
-            game_price = game_price[0]
-
+            game_creator = find_game_creator(game_id)
+            game_price = find_game_price(game_id)
             username = self.request.user.username
             user_balance = self.request.user.balance
-            user_q = CustomUser.objects.filter(username=username)
+            user = find_user(username)
 
             if user_balance >= game_price:
-                user_q.update(balance=F('balance') - game_price)
+                game_purchase(user, game_price, game_creator)
                 self.perform_create(serializer)
-                game_creator_user.update(balance=F('balance') + game_price)
                 headers = self.get_success_headers(serializer.data)
                 return Response({"game_id": game_id, "balance": int(self.request.user.balance) - game_price,
                                  "Message": "success", "Description": "Success"}, status=status.HTTP_200_OK,

@@ -1,10 +1,9 @@
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Deposit, CustomUser
 from .serializers import RegistrationSerializer, DepositSerializer, DepositsListSerializer, RollbackSerializer, \
     ProfileSerializer
-from django.db.models import F
+from .services import *
 
 
 class IsNotAuthenticated(BasePermission):
@@ -35,11 +34,12 @@ class DepositViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         amount = (request.data['amount'])
         username = self.request.user.username
+
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             self.perform_create(serializer)
-            user = CustomUser.objects.filter(username=username)
-            user.update(balance=F('balance') + amount)
+            user = find_user(username)
+            do_deposit(user, amount)
             headers = self.get_success_headers(serializer.data)
             return Response(
                 {"deposit_id": serializer.data['id'], "balance": int(self.request.user.balance) + int(amount),
@@ -76,10 +76,10 @@ class RollbackView(generics.RetrieveUpdateAPIView):
         deposit_amount = instance.amount
         deposit_id = instance.id
         deposit_status = instance.status
-        deposit = Deposit.objects.filter(id=deposit_id)
+        deposit = find_deposit(deposit_id)
 
         username = self.request.user.username
-        user = CustomUser.objects.filter(username=username)
+        user = find_user(username)
 
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
 
@@ -90,8 +90,7 @@ class RollbackView(generics.RetrieveUpdateAPIView):
             if deposit_status == "success":
                 if self.request.user.balance >= deposit_amount:
                     self.perform_update(serializer)
-                    deposit.update(status='cancelled')
-                    user.update(balance=F('balance') - deposit_amount)
+                    rollback(user, deposit, deposit_amount)
                     return Response(
                         {"balance": int(self.request.user.balance) - int(deposit_amount),
                          "Message": "success", "Description": "Success"},
@@ -99,7 +98,7 @@ class RollbackView(generics.RetrieveUpdateAPIView):
                 else:
                     return Response(
                         {"Message": "error",
-                         "Description": "Not successful, there are not enough money in your account"},
+                         "Description": "Not successful, there are not enough funds in your account"},
                         status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response(
