@@ -26,4 +26,4 @@ The whole system must be implemented using REST API JSON.
 - Check all deposits: ("deposits/")
 - Refund money for specific deposit: ("rollback/&lt;uuid:id&gt;/")
 - Create game: ("game/create/")
-- Buy game: ("game/buy/")
+- Buy game: ("game/buy/")(When you buy a game, your money goes to the game creator's account)
